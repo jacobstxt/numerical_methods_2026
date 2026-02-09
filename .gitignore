@@ -1,0 +1,51 @@
+# Python (компільовані файли та кеш)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Віртуальні середовища (Virtual Environments)
+# Ми не додаємо їх у Git, бо вони специфічні для кожного комп'ютера
+.venv/
+venv/
+env/
+ENV/
+bin/
+lib/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.installed.cfg
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+
+# Conda та uv (оскільки ти використовуєш ці менеджери)
+.conda/
+uv.lock
+.uv/
+
+# Налаштування PyCharm (JetBrains IDE)
+# Важливо: ігноруємо папку .idea, щоб твої персональні налаштування вікон не заважали іншим
+.idea/
+*.iml
+
+# Jupyter Notebooks (для Чисельних методів)
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Змінні оточення та секрети
+# НІКОЛИ не відправляй паролі чи ключі API в GitHub
+.env
+.flaskenv
+
+# Системні файли
+Thumbs.db
+desktop.ini
+.DS_Store
