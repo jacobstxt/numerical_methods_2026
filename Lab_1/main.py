@@ -98,6 +98,118 @@ try:
     plt.show()
 
 
+    # --- 6. Побудова кубічних сплайнів ---
+    def build_spline(x, y):
+        n = len(x)
+        h = np.diff(x)
+
+        # 6. Формування системи лінійних рівнянь (тридіагональна матриця)
+        # А * m = B, де m - другі похідні (коефіцієнти c)
+        A = np.zeros((n, n))
+        B = np.zeros(n)
+
+        # Природні умови (другі похідні на кінцях = 0)
+        A[0, 0] = 1
+        A[n - 1, n - 1] = 1
+
+        for i in range(1, n - 1):
+            A[i, i - 1] = h[i - 1]
+            A[i, i] = 2 * (h[i - 1] + h[i])
+            A[i, i + 1] = h[i]
+            B[i] = 3 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1])
+
+        # 7. Метод прогонки (Алгоритм Томаса)
+        def tridiagonal_solve(A, B):
+            n = len(B)
+            c_prime = np.zeros(n)
+            d_prime = np.zeros(n)
+            sol = np.zeros(n)
+
+            # Прямий хід
+            c_prime[0] = A[0, 1] / A[0, 0] if n > 1 else 0
+            d_prime[0] = B[0] / A[0, 0]
+
+            for i in range(1, n - 1):
+                m = A[i, i] - A[i, i - 1] * c_prime[i - 1]
+                c_prime[i] = A[i, i + 1] / m
+                d_prime[i] = (B[i] - A[i, i - 1] * d_prime[i - 1]) / m
+
+            d_prime[n - 1] = (B[n - 1] - A[n - 1, n - 2] * d_prime[n - 2]) / (
+                        A[n - 1, n - 1] - A[n - 1, n - 2] * c_prime[n - 2])
+
+            # Зворотний хід
+            sol[n - 1] = d_prime[n - 1]
+            for i in range(n - 2, -1, -1):
+                sol[i] = d_prime[i] - c_prime[i] * sol[i + 1]
+            return sol
+
+        print("\n--- Розв'язок системи (коефіцієнти c_i) ---")
+        c = tridiagonal_solve(A, B)
+        print(c)
+
+        # 8. Обчислення коефіцієнтів a, b, d
+        a = np.array(y[:-1])
+        b = np.zeros(n - 1)
+        d = np.zeros(n - 1)
+
+        for i in range(n - 1):
+            b[i] = (y[i + 1] - y[i]) / h[i] - h[i] * (c[i + 1] + 2 * c[i]) / 3
+            d[i] = (c[i + 1] - c[i]) / (3 * h[i])
+
+        return a, b, c[:-1], d
+
+
+    # Функція для отримання значення сплайна в точці x_new
+    def evaluate_spline(x, x_nodes, a, b, c, d):
+        idx = np.searchsorted(x_nodes, x) - 1
+        idx = np.clip(idx, 0, len(x_nodes) - 2)
+        dx = x - x_nodes[idx]
+        return a[idx] + b[idx] * dx + c[idx] * dx ** 2 + d[idx] * dx ** 3
+
+
+    # --- 10. Побудова графіків для 10, 15, 20 вузлів ---
+    plt.figure(figsize=(12, 7))
+    colors = {10: 'red', 15: 'orange', 20: 'blue'}
+
+    for count in [10, 15, 20]:
+        # Вибираємо підмножину вузлів
+        indices = np.linspace(0, len(distances) - 1, count, dtype=int)
+        x_nodes = np.array(distances)[indices]
+        y_nodes = np.array(elevations)[indices]
+
+        # Будуємо сплайн
+        a, b, c, d_coeff = build_spline(x_nodes, y_nodes)
+
+        # Для гладкого графіка створюємо 500 точок
+        x_fine = np.linspace(min(distances), max(distances), 500)
+        y_fine = [evaluate_spline(val, x_nodes, a, b, c, d_coeff) for val in x_fine]
+
+        plt.plot(x_fine, y_fine, label=f'Сплайн ({count} вузлів)', color=colors[count])
+        plt.scatter(x_nodes, y_nodes, color=colors[count], s=30)
+
+    plt.plot(distances, elevations, 'k--', alpha=0.3, label='Оригінальні дані')
+    plt.title("Порівняння кубічних сплайнів при різній кількості вузлів")
+    plt.xlabel("Відстань (м)")
+    plt.ylabel("Висота (м)")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    # --- Додатково: Характеристики маршруту ---
+    total_len = distances[-1]
+    total_ascent = sum(max(elevations[i] - elevations[i - 1], 0) for i in range(1, n))
+    total_descent = sum(max(elevations[i - 1] - elevations[i], 0) for i in range(1, n))
+
+    print(f"\n--- Характеристики маршруту ---")
+    print(f"Загальна довжина: {total_len:.2f} м")
+    print(f"Сумарний набір висоти: {total_ascent:.2f} м")
+    print(f"Сумарний спуск: {total_descent:.2f} м")
+
+    # Енергія (маса 80 кг)
+    energy = 80 * 9.81 * total_ascent
+    print(f"Механічна енергія підйому (кДж): {energy / 1000:.2f}")
+
+
 except requests.exceptions.HTTPError as err:
     print(f"Помилка сервера: {err}")
 except Exception as e:
