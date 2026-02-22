@@ -153,8 +153,8 @@ energy_joules = 80 * 9.81 * total_ascent
 
 print("\n===== ПІДСУМОК МАРШРУТУ =====")
 print(f"Довжина маршруту: {distances[-1]:.2f} м")
-print(f"Набір висоти: {total_ascent:.2f} м")
-print(f"Макс. підйом: {np.max(grad):.2f} %")
+print(f"Сумарний набір висоти: {total_ascent:.2f} м")
+print(f"Максимальний підйом: {np.max(grad):.2f} %")
 print(f"Максимальний спуск: {np.min(grad):.2f} %")
 print("Середній градієнт (%):", np.mean(np.abs(grad)))
 print(f"Енергія: {energy_joules / 1000:.2f} кДж ({energy_joules / 4184:.2f} ккал)")
