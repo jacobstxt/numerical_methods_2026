@@ -36,9 +36,8 @@ print(f"\nЗчитано {len(x_all)} вузлів з файлу:")
 for xi, yi in zip(x_all, y_all):
     print(f"  n={int(xi):6d}  t={yi} мс")
 
-# ─────────────────────────────────────────────
-# 3. ТАБЛИЦЯ РОЗДІЛЕНИХ РІЗНИЦЬ
-# ─────────────────────────────────────────────
+
+# таблиця розділених різниць
 
 def divided_differences(x, y):
     """Повертає таблицю розділених різниць."""
@@ -64,12 +63,10 @@ def print_divided_diff_table(x, table):
         print(row)
     print("-" * len(header))
 
-# ─────────────────────────────────────────────
-# 4. МНОГОЧЛЕН НЬЮТОНА
-# ─────────────────────────────────────────────
+
+# многочлен ньютона
 
 def newton_predict(x_point, x_nodes, table):
-    """Обчислює значення многочлена Ньютона у точці x_point."""
     n = len(x_nodes)
     result = table[0, 0]
     product = 1.0
@@ -78,9 +75,8 @@ def newton_predict(x_point, x_nodes, table):
         result += table[0, i] * product
     return result
 
-# ─────────────────────────────────────────────
-# 5. ДОСЛІДЖЕННЯ ПРИ РІЗНІЙ КІЛЬКОСТІ ВУЗЛІВ
-# ─────────────────────────────────────────────
+
+# дослідження при різній кількості вузлів
 
 TARGET_N = 6000
 node_counts = [3, 4, 5]
@@ -97,7 +93,6 @@ for k in node_counts:
     pred = newton_predict(TARGET_N, x_k, table_k)
     results[k] = pred
     print(f"  {k} вузли: P_{k}({TARGET_N}) = {pred:.4f} мс")
-
 
 
 ref = results[5]
