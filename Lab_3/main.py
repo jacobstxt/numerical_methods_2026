@@ -16,9 +16,7 @@ with open(csv_filename, "w", newline="") as f:
 
 print(f"Дані збережено у {csv_filename}")
 
-
 # зчитування з CSV
-
 def read_csv(filename):
     x_vals, y_vals = [], []
     with open(filename, newline="") as f:
@@ -31,8 +29,7 @@ def read_csv(filename):
 x_all, y_all = read_csv(csv_filename)
 print(f"\nЗчитано {len(x_all)} вузлів з файлу:")
 for xi, yi in zip(x_all, y_all):
-    print(f"  month:{int(xi)}  temperature:{yi} ")
-
+    print(f"month:{int(xi)}  temperature:{yi}°C ")
 
 
 def form_matrix(x, m):
@@ -64,7 +61,6 @@ coeffs = np.linalg.solve(A, b)
 print("\nКоефіцієнти полінома:", coeffs)
 
 
-
 def gauss_solve(A, b):
     A = A.copy().astype(float)
     b = b.copy().astype(float)
@@ -72,10 +68,7 @@ def gauss_solve(A, b):
 
     # Прямий хід з вибором головного елемента
     for k in range(n):
-        # Знайти рядок з найбільшим |A[i,k]|
         max_row = k + np.argmax(np.abs(A[k:, k]))
-
-        # Поміняти рядки k та max_row місцями
         A[[k, max_row]] = A[[max_row, k]]
         b[[k, max_row]] = b[[max_row, k]]
 
@@ -104,6 +97,21 @@ def variance(y_true, y_approx):
     return np.mean((y_true - y_approx) ** 2)
 
 
+# --- Тригонометричний прогноз (реалістичний) ---
+def form_trig_matrix(x, n_harmonics, T=12):
+    cols = [np.ones_like(x)]
+    for k in range(1, n_harmonics + 1):
+        cols.append(np.cos(2 * np.pi * k * x / T))
+        cols.append(np.sin(2 * np.pi * k * x / T))
+    return np.column_stack(cols)
+
+def trig_solve(x, y, n_harmonics, T=12):
+    A = form_trig_matrix(x, n_harmonics, T)
+    return gauss_solve(A.T @ A, A.T @ y)
+
+def trig_polynomial(x, coef, T=12):
+    return form_trig_matrix(x, (len(coef)-1)//2, T) @ coef
+
 
 max_degree = 4
 variances = []
@@ -129,14 +137,14 @@ y_approx = polynomial(x_all, coef)
 # -------------------------------
 # 5. Прогноз на наступні 3 місяці
 # -------------------------------
+coef_trig = trig_solve(x_all, y_all, 3)
 x_future = np.array([25, 26, 27])
+y_future_trig = trig_polynomial(x_future, coef_trig)
 y_future = polynomial(x_future, coef)
-
 # -------------------------------
 # 6. Похибка апроксимації
 # -------------------------------
 error = y_all - y_approx
-
 # -------------------------------
 # 7. Вивід результатів
 # -------------------------------
@@ -148,24 +156,27 @@ for m, var in enumerate(variances, start=1):
 print(f"\nОптимальний ступінь полінома: {optimal_m}")
 print(f"Коефіцієнти полінома: {coef}")
 
-print("\nПрогноз на наступні 3 місяці:")
-for xi, yi in zip(x_future, y_future):
-    print(f"  month:{int(xi)}: temperature:{yi:.2f}")
 
-# -------------------------------
-# Графіки
-# -------------------------------
+
+print("\nПрогноз на наступні 3 місяці:")
+print(f"{'Місяць':>8} {'Поліном':>12} {'Тригонометр':>14}")
+print("-" * 36)
+for xi, yp, yt in zip(x_future, y_future, y_future_trig):
+    print(f"{int(xi):>8} {yp:>11.2f}°C {yt:>12.2f}°C")
+
+
+
 fig, axes = plt.subplots(3, 1, figsize=(10, 12))
-fig.suptitle(f"Поліноміальна апроксимація (ступінь {optimal_m})", fontsize=14)
+fig.suptitle(f"Апроксимація температури (поліном m={optimal_m})", fontsize=14)
 
 
 # Графік 1: Фактичні дані + апроксимація + прогноз
 ax1 = axes[0]
 ax1.plot(x_all, y_all, 'bo-', label='Фактичні дані', markersize=5)
-ax1.plot(x_all, y_approx, 'r-', label=f'Апроксимація (m={optimal_m})', linewidth=2)
+ax1.plot(x_all, y_approx, 'r-', label=f'Поліном (m={optimal_m})', linewidth=2)
 ax1.plot(x_future, y_future, 'g^--', label='Прогноз', markersize=8)
-ax1.set_xlabel("n")
-ax1.set_ylabel("t (мс)")
+ax1.set_xlabel("Місяць")
+ax1.set_ylabel("Температура (°C)")
 ax1.set_title("Фактичні дані та апроксимація")
 ax1.legend()
 ax1.grid(True)
@@ -174,8 +185,8 @@ ax1.grid(True)
 ax2 = axes[1]
 ax2.bar(x_all, error, color='orange', alpha=0.7, label='Похибка')
 ax2.axhline(0, color='black', linewidth=0.8)
-ax2.set_xlabel("n")
-ax2.set_ylabel("Похибка (мс)")
+ax2.set_xlabel("Місяць")
+ax2.set_ylabel("Похибка (°C)")
 ax2.set_title("Похибка апроксимації (фактичне − апроксимація)")
 ax2.legend()
 ax2.grid(True, axis='y')
