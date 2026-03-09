@@ -47,7 +47,7 @@ def form_vector(x, y, m):
     return b
 
 
-m = 3  # ступінь полінома
+m = 3
 A = form_matrix(x_all, m)
 b = form_vector(x_all, y_all, m)
 
@@ -113,7 +113,7 @@ def trig_polynomial(x, coef, T=12):
     return form_trig_matrix(x, (len(coef)-1)//2, T) @ coef
 
 
-max_degree = 4
+max_degree = 3
 variances = []
 
 for m in range(1, max_degree + 1):
@@ -165,42 +165,71 @@ for xi, yp, yt in zip(x_future, y_future, y_future_trig):
     print(f"{int(xi):>8} {yp:>11.2f}°C {yt:>12.2f}°C")
 
 
+# гладка крива для полінома
+x_smooth = np.linspace(min(x_all), max(x_all), 300)
+y_smooth = polynomial(x_smooth, coef)
 
-fig, axes = plt.subplots(3, 1, figsize=(10, 12))
-fig.suptitle(f"Апроксимація температури (поліном m={optimal_m})", fontsize=14)
+fig, axes = plt.subplots(3, 1, figsize=(12, 12))
+fig.suptitle(f"Апроксимація температури (поліном m={optimal_m})", fontsize=14, fontweight="bold")
 
-
-# Графік 1: Фактичні дані + апроксимація + прогноз
+# -------------------------------
+# Графік 1
+# -------------------------------
 ax1 = axes[0]
-ax1.plot(x_all, y_all, 'bo-', label='Фактичні дані', markersize=5)
-ax1.plot(x_all, y_approx, 'r-', label=f'Поліном (m={optimal_m})', linewidth=2)
-ax1.plot(x_future, y_future, 'g^--', label='Прогноз', markersize=8)
-ax1.set_xlabel("Місяць")
-ax1.set_ylabel("Температура (°C)")
-ax1.set_title("Фактичні дані та апроксимація")
+
+ax1.scatter(x_all, y_all, color='royalblue', s=60, label='Фактичні дані', zorder=3)
+ax1.plot(x_smooth, y_smooth, color='crimson', linewidth=3, label=f'Поліном (m={optimal_m})')
+ax1.plot(x_future, y_future, 'g^--', markersize=10, linewidth=2, label='Прогноз')
+
+ax1.set_ylabel("Температура (°C)", fontsize=11)
+ax1.set_title("Фактичні дані та апроксимація", fontsize=12)
+
 ax1.legend()
-ax1.grid(True)
+ax1.grid(True, linestyle='--', alpha=0.6)
 
-# Графік 2: Похибка апроксимації
+# -------------------------------
+# Графік 2
+# -------------------------------
 ax2 = axes[1]
-ax2.bar(x_all, error, color='orange', alpha=0.7, label='Похибка')
-ax2.axhline(0, color='black', linewidth=0.8)
-ax2.set_xlabel("Місяць")
-ax2.set_ylabel("Похибка (°C)")
-ax2.set_title("Похибка апроксимації (фактичне − апроксимація)")
-ax2.legend()
-ax2.grid(True, axis='y')
 
-# Графік 3: MSE для різних ступенів
+ax2.bar(x_all, error, color='orange', alpha=0.8)
+ax2.plot(x_all, error, 'ro-', linewidth=1)
+
+ax2.axhline(0, color='black', linewidth=1)
+
+
+ax2.set_ylabel("Похибка (°C)", fontsize=11)
+
+ax2.set_title("Похибка апроксимації", fontsize=12)
+
+ax2.grid(True, axis='y', linestyle='--', alpha=0.6)
+
+# -------------------------------
+# Графік 3
+# -------------------------------
 ax3 = axes[2]
+
 degrees = list(range(1, max_degree + 1))
-bars = ax3.bar(degrees, variances, color='steelblue', alpha=0.8)
-bars[optimal_m - 1].set_color('crimson')
+bars = ax3.bar(degrees, variances, alpha=0.85)
+
+for i, bar in enumerate(bars):
+    if i == optimal_m - 1:
+        bar.set_color('crimson')
+    else:
+        bar.set_color('steelblue')
+
+    height = bar.get_height()
+    ax3.text(bar.get_x() + bar.get_width()/2, height,
+             f'{height:.1f}', ha='center', va='bottom', fontsize=10)
+
 ax3.set_xlabel("Ступінь полінома")
 ax3.set_ylabel("MSE")
-ax3.set_title("Дисперсія для різних ступенів (червоний = оптимальний)")
-ax3.set_xticks(degrees)
-ax3.grid(True, axis='y')
 
-plt.tight_layout()
+ax3.set_title("Дисперсія для різних ступенів (червоний = оптимальний)")
+
+ax3.set_xticks(degrees)
+
+ax3.grid(True, axis='y', linestyle='--', alpha=0.6)
+
+plt.tight_layout(rect=[0, 0, 1, 0.96])
 plt.show()
