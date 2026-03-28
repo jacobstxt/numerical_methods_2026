@@ -1,24 +1,36 @@
 import math
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def M(t):
-    """Функція вологості ґрунту M(t)"""
     return 50 * math.exp(-0.1 * t) + 5 * math.sin(t)
 
 
 def exact_derivative(t):
-    """Точне аналітичне значення першої похідної"""
-
     return -5 * math.exp(-0.1 * t) + 5 * math.cos(t)
 
 
 def central_difference(t, h):
-    """Формула центральної різниці для наближеного диференціювання"""
     return (M(t + h) - M(t - h)) / (2 * h)
 
 
+def plot_Mt():
+    t_values = np.linspace(0, 20, 1000)
+    M_values = [M(t) for t in t_values]
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.plot(t_values, M_values, color='steelblue', linewidth=2)
+    ax.set_xlabel('t', fontsize=12)
+    ax.set_ylabel('M(t)', fontsize=12)
+    ax.set_title('Графік функції вологості ґрунту M(t)', fontsize=13)
+    ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+    ax.axhline(0, color='black', linewidth=0.8)
+    plt.tight_layout()
+    plt.show()
+
+
 def main():
-    # Задаємо точку, в якій шукаємо похідну (використовуємо t0 = 1, як у прикладі методички)
     t0 = 1.0
     exact_val = exact_derivative(t0)
     print(f"1. Точне значення похідної в точці t0={t0}: {exact_val:.5f}\n")
@@ -92,6 +104,9 @@ def main():
         print(f"Порядок точності формули p: {p:.2f}")
     else:
         print("Помилка обчислення: ділення на нуль (значення похідних майже однакові).")
+
+    plot_Mt()
+
 
 
 if __name__ == "__main__":
