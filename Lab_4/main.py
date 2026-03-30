@@ -3,6 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Liberation Sans']
+
 def M(t):
     return 50 * math.exp(-0.1 * t) + 5 * math.sin(t)
 
@@ -32,6 +35,50 @@ def plot_Mt():
     plt.show()
 
 
+def plot_error_analysis(t0, h_values, errors):
+    # Конвертуємо в numpy масиви для стабільності
+    h_values = np.array(h_values)
+    errors = np.array(errors)
+
+    # Фільтруємо лише коректні дані (більше нуля та не NaN)
+    mask = (errors > 0) & np.isfinite(errors)
+    h_plot = h_values[mask]
+    err_plot = errors[mask]
+
+    if len(h_plot) == 0:
+        print("Помилка: немає даних для побудови графіка похибок.")
+        return
+
+    plt.figure(figsize=(10, 6))
+
+    # Малюємо основну лінію
+    plt.loglog(h_plot, err_plot, color='darkviolet', marker='o', markersize=3, label='Обчислена похибка')
+
+    # Шукаємо мінімум
+    min_idx = np.argmin(err_plot)
+    best_h = h_plot[min_idx]
+    min_err = err_plot[min_idx]
+
+    plt.loglog(best_h, min_err, 'orange', marker='*', markersize=12, label=f'Оптимум (h≈{best_h:.1e})')
+
+    # Безпечні анотації (використовуємо знайдені точки, а не жорсткі індекси)
+    plt.annotate('Область округлення', xy=(h_plot[len(h_plot) // 10], err_plot[len(h_plot) // 10]),
+                 xytext=(1e-18, 1e-5), arrowprops=dict(arrowstyle='->'))
+
+    plt.annotate('Область методу ($h^2$)', xy=(h_plot[-5], err_plot[-5]),
+                 xytext=(1e-2, 1e-10), arrowprops=dict(arrowstyle='->'))
+
+    plt.xlabel('Крок h (log scale)')
+    plt.ylabel('Похибка R (log scale)')
+    plt.title(f'Аналіз похибки в точці t0={t0}')
+    plt.grid(True, which="both", ls="-", alpha=0.3)
+    plt.legend()
+
+    # Використовуємо subplots_adjust замість tight_layout, якщо він викликає помилку
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+    plt.show()
+
+
 def main():
     t0 = 1.0 # 1. Точка, в якій шукаємо похідну
     exact_val = exact_derivative(t0)
@@ -39,23 +86,33 @@ def main():
 
     # 2. Дослідження залежності похибки від кроку h
     print("--- 2. Дослідження кроку h ---")
+
+    h_values_for_plot = np.logspace(-20, 3, 100)
+    errors_for_plot = []
+
     best_h = None
     min_error = float('inf')
-    # 3. Будемо брати h від 10^-20 до 10^3
-    h_values = [10 ** i for i in range(-20, 4)]
 
-    # 4. Шукаємо h, при якому похибка мінімальна
-    for h in h_values:
+    # 4. Шукаємо h, при якому похибка мінімальна, та збираємо дані для графіка
+    for h in h_values_for_plot:
         try:
             approx_val = central_difference(t0, h)
             error = abs(approx_val - exact_val)
 
+            errors_for_plot.append(max(error, 1e-18))
+
             if error < min_error:
                 min_error = error
                 best_h = h
-        except ZeroDivisionError:
-            # Ігноруємо випадки, коли через обмеження типу float 2*h стає рівним 0
-            pass
+        except (ZeroDivisionError, OverflowError):
+            errors_for_plot.append(float('nan'))
+
+    print(f"Оптимальний крок h0 (з досліджених): {best_h:.1e}")
+    print(f"Мінімальна похибка R0: {min_error:.5e}\n")
+
+
+    print("ВІДОБРАЖЕННЯ ГРАФІКА АНАЛІЗУ ПОХИБКИ...")
+    plot_error_analysis(t0, h_values_for_plot, errors_for_plot)
 
     print(f"Оптимальний крок h0: {best_h:.1e}")
     print(f"Мінімальна похибка R0: {min_error:.5e}\n")
@@ -73,6 +130,7 @@ def main():
     print(f"Похибка при кроці h (R1): {R1:.5e}")
 
     # 6. Метод Рунге-Ромберга
+    # Ця формула дозволяє підвищити порядок точності
     y_R = y_prime_h + (y_prime_h - y_prime_2h) / 3
     R2 = abs(y_R - exact_val)
 
