@@ -234,7 +234,7 @@ ax3.grid(True, alpha=0.3)
 
 # ── Графік 4: Newton vs Lagrange ──────────────────────
 ax4 = fig.add_subplot(gs[1, 1])
-ax4.set_title("Дослід 4: Newton vs Lagrange\n(порівняння кривих при 5 вузлах)", fontsize=11)
+ax4.set_title("Дослід 4: Порівняння Ньютона та Лагранжа\n(порівняння кривих при 5 вузлах)", fontsize=11)
 
 # Newton
 table5 = divided_differences(x_all, y_all)

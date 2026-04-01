@@ -29,6 +29,7 @@ for i in range(1, n):
     d = haversine(*coords[i - 1], *coords[i])
     distances.append(distances[-1] + d)
 
+
 # Запис у файл
 with open("route_analysis.txt", "w", encoding="utf-8") as f:
     f.write("№ | Широта | Довгота | Висота (м) | Відстань (м)\n")
@@ -51,12 +52,13 @@ def cubic_spline_natural(x, y):
         C[i] = h[i]
         D[i] = 6 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1])
 
-    # Метод прогонки
+    # Метод прогонки прямий хід
     for i in range(1, n):
         m = A[i] / B[i - 1]
         B[i] -= m * C[i - 1]
         D[i] -= m * D[i - 1]
 
+    #Зворотний хід
     M = np.zeros(n)
     M[-1] = D[-1] / B[-1]
     for i in range(n - 2, -1, -1):
