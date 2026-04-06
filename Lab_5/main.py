@@ -2,15 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
 
-# ─────────────────────────────────────────────
-# Параметри задачі
-# ─────────────────────────────────────────────
+
 A, B = 0, 24
 
 
 def f(x):
     return 50 + 20 * np.sin(np.pi * x / 12) + 5 * np.exp(-0.2 * (x - 12) ** 2)
-
 
 
 def plot_function():
@@ -35,7 +32,6 @@ def exact_integral():
     I0, _ = quad(f, A, B, limit=200)
     return I0
 
-
 # Функція яка за допомогою методу Сімпсона знаходить наближене значення означеного інтегралу
 def simpson(func, a, b, N):
     if N % 2 != 0:
@@ -43,19 +39,16 @@ def simpson(func, a, b, N):
     h = (b - a) / N
     x = np.linspace(a, b, N + 1)
     y = func(x)
-    # коефіцієнти: 1, 4, 2, 4, 2, ..., 4, 1
     coeff = np.ones(N + 1)
-    coeff[1:-1:2] = 4   # непарні індекси
-    coeff[2:-2:2] = 2   # парні індекси (крім крайніх)
+    coeff[1:-1:2] = 4
+    coeff[2:-2:2] = 2
     return h / 3 * np.dot(coeff, y)
-
 
 # Залежність точності від N
 def study_accuracy(I0):
     N_values = range(10, 1001, 2)   # тільки парні
     errors = [abs(simpson(f, A, B, N) - I0) for N in N_values]
 
-    # N_opt — перше N де похибка < 1e-12
     eps_target = 1e-12
     N_opt = None
     for N, e in zip(N_values, errors):
@@ -63,7 +56,6 @@ def study_accuracy(I0):
             N_opt = N
             break
 
-    # графік
     plt.figure(figsize=(10, 5))
     plt.semilogy(list(N_values), errors, color="darkorange", linewidth=1.5)
     if N_opt:
