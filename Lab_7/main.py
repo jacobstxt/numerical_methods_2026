@@ -159,7 +159,6 @@ def seidel(A, f, X0, eps, max_iter):
 
 
 def main():
-    # ── Крок 1: Генерація системи ──
     print("\n[1] Генерація матриці A та вектора B...")
     A, B, X_true = generate_system(N, X_TRUE_VAL)
     save_matrix("matrix_A.txt", A)
@@ -167,7 +166,7 @@ def main():
     print(f"    Розмірність: {N}×{N}")
     print(f"    Точний розв'язок: всі x_i = {X_TRUE_VAL}")
 
-    # Перевірка діагонального переважання
+
     diag_dom = True
     for i in range(N):
         off_diag = sum(abs(A[i, j]) for j in range(N) if j != i)
@@ -176,18 +175,18 @@ def main():
             break
     print(f"    Діагональне переважання: {'Так' if diag_dom else 'Ні'}")
 
-    # ── Крок 2: Норми матриці ──
+
     print(f"\n[2] Характеристики матриці:")
     norm_A = matrix_norm_inf(A)
     print(f"    ||A||_inf = {norm_A:.6e}")
 
-    # ── Крок 3: Початкове наближення ──
+
     X0 = np.array([1.0 * (i + 1) for i in range(N)])
     print(f"\n[3] Початкове наближення: x0_i = 1.0 * i, i = 1..{N}")
     print(f"    X0[:5] = {X0[:5]}")
     print(f"    ||X0 - X_true|| = {vector_norm_inf(X0 - X_true):.6e}")
 
-    # ── Крок 4: Метод простої ітерації ──
+
     print(f"\n[4] Метод простої ітерації (eps = {EPS:.0e})...")
     X_si, iter_si, norm_C_si = simple_iteration(A, B, X0, EPS, MAX_ITER)
     err_si = vector_norm_inf(X_si - X_true)
@@ -197,7 +196,7 @@ def main():
     print(f"    ||X - X_true|| = {err_si:.6e}")
     print(f"    ||AX - B|| = {res_si:.6e}")
 
-    # ── Крок 5: Метод Якобі ──
+
     print(f"\n[5] Метод Якобі (eps = {EPS:.0e})...")
     X_jac, iter_jac, norm_C_jac = jacobi(A, B, X0, EPS, MAX_ITER)
     err_jac = vector_norm_inf(X_jac - X_true)
@@ -207,7 +206,7 @@ def main():
     print(f"    ||X - X_true|| = {err_jac:.6e}")
     print(f"    ||AX - B|| = {res_jac:.6e}")
 
-    # ── Крок 6: Метод Зейделя ──
+
     print(f"\n[6] Метод Зейделя (eps = {EPS:.0e})...")
     X_seid, iter_seid = seidel(A, B, X0, EPS, MAX_ITER)
     err_seid = vector_norm_inf(X_seid - X_true)
@@ -216,7 +215,7 @@ def main():
     print(f"    ||X - X_true|| = {err_seid:.6e}")
     print(f"    ||AX - B|| = {res_seid:.6e}")
 
-    # ── Крок 7: Порівняння ──
+
     print(f"\n[7] Порівняння методів:")
     header = f"    {'Метод':<25} {'Ітерацій':<12} {'||X-X_true||':<18} {'||AX-B||':<18}"
     print(header)

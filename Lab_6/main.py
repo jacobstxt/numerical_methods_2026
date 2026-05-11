@@ -101,7 +101,7 @@ def solve_lu(L, U, B):
 
 
 def mat_vec_mult(A, x):
-    """Обчислює добуток матриці A на вектор x."""
+    """Функція обчислює добуток матриці A на вектор x."""
     n = len(x)
     result = np.zeros(n)
     for i in range(n):
@@ -118,10 +118,6 @@ def vector_norm_inf(v):
 
 
 def compute_residual_norm(A, X, B):
-    """
-    Обчислює точність розв'язку:
-    eps = max_i |Σ_j a_ij * x_j - b_i|
-    """
     AX = mat_vec_mult(A, X)
     return vector_norm_inf(AX - B)
 
@@ -133,17 +129,17 @@ def iterative_refinement(A, L, U, B, X0, eps, max_iter):
     print("    " + "-" * 52)
 
     for iteration in range(1, max_iter + 1):
-        # Обчислюємо нев'язку
+        # Обчислення нев'язки
         AX = mat_vec_mult(A, X)
         R = B - AX
 
-        # Розв'язуємо A·ΔX = R через LU
+        # Розв'язання A·ΔX = R через LU
         dX = solve_lu(L, U, R)
 
-        # Уточнюємо розв'язок
+        # Уточнення розв'язок
         X = X + dX
 
-        # Перевіряємо умови збіжності
+        # Перевірка умови збіжності
         norm_dX = vector_norm_inf(dX)
         norm_res = compute_residual_norm(A, X, B)
 
@@ -184,6 +180,8 @@ def main():
 
     print(f"    Перші 5 елементів X:  {X0[:5]}")
     print(f"    Останні 5 елементів X: {X0[-5:]}")
+
+    save_vector("solution_X.txt", X0)
 
 
     print("\n[4] Оцінка точності розв'язку...")
